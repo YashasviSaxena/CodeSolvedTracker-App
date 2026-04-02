@@ -1,0 +1,311 @@
+﻿@model List<CodeSolvedTracker.Models.UserPlatform>
+
+@{
+    ViewData["Title"] = "Sync Platforms";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-body">
+                    <h4 style="color: #2C3E50;"><i class="fas fa-plug me-2"></i>Connect Your Coding Platforms</h4>
+                    <p class="text-muted">Sync your progress from multiple platforms to track everything in one place</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- LeetCode -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div style="width: 70px; height: 70px; margin: 0 auto; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <span style="color: #FFA116; font-size: 28px; font-weight: bold;">LC</span>
+                        </div>
+                    </div>
+                    <h5 style="color: #2C3E50; font-weight: 600;">LeetCode</h5>
+                    <input type="text" id="leetcodeUsername" class="form-control mb-3" placeholder="Enter LeetCode Username" style="text-align: center;" autocomplete="off">
+                    <button class="btn w-100" style="background: #FFA116; color: white; border: none;" onclick="syncLeetCode()">
+                        <i class="fas fa-sync-alt"></i> Sync LeetCode
+                    </button>
+                    <div id="leetcodeResult" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Codeforces -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div style="width: 70px; height: 70px; margin: 0 auto; background: #1E88E5; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <span style="color: white; font-size: 28px; font-weight: bold;">CF</span>
+                        </div>
+                    </div>
+                    <h5 style="color: #2C3E50; font-weight: 600;">Codeforces</h5>
+                    <input type="text" id="codeforcesUsername" class="form-control mb-3" placeholder="Enter Codeforces Username" style="text-align: center;" autocomplete="off">
+                    <button class="btn w-100" style="background: #1E88E5; color: white; border: none;" onclick="syncCodeforces()">
+                        <i class="fas fa-sync-alt"></i> Sync Codeforces
+                    </button>
+                    <div id="codeforcesResult" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CodeChef -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div style="width: 70px; height: 70px; margin: 0 auto; background: #5A2D2D; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <span style="color: white; font-size: 28px; font-weight: bold;">CC</span>
+                        </div>
+                    </div>
+                    <h5 style="color: #2C3E50; font-weight: 600;">CodeChef</h5>
+                    <input type="text" id="codechefUsername" class="form-control mb-3" placeholder="Enter CodeChef Username" style="text-align: center;" autocomplete="off">
+                    <button class="btn w-100" style="background: #5A2D2D; color: white; border: none;" onclick="syncCodeChef()">
+                        <i class="fas fa-sync-alt"></i> Sync CodeChef
+                    </button>
+                    <div id="codechefResult" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HackerRank -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div style="width: 70px; height: 70px; margin: 0 auto; background: #2EC866; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <span style="color: white; font-size: 28px; font-weight: bold;">HR</span>
+                        </div>
+                    </div>
+                    <h5 style="color: #2C3E50; font-weight: 600;">HackerRank</h5>
+                    <input type="text" id="hackerrankUsername" class="form-control mb-3" placeholder="Enter HackerRank Username" style="text-align: center;" autocomplete="off">
+                    <button class="btn w-100" style="background: #2EC866; color: white; border: none;" onclick="syncHackerRank()">
+                        <i class="fas fa-sync-alt"></i> Sync HackerRank
+                    </button>
+                    <div id="hackerrankResult" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connected Platforms Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50;"><i class="fas fa-link me-2"></i>Connected Platforms</h5>
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="row">
+                            @foreach (var platform in Model)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-0 shadow-sm rounded-3 h-100" style="background: #F8F9FA;">
+                                        <div class="card-body text-center">
+                                            @if (platform.Platform == "LeetCode")
+                                            {
+                                                <div style="width: 40px; height: 40px; margin: 0 auto 10px auto; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                    <span style="color: #FFA116; font-size: 16px; font-weight: bold;">LC</span>
+                                                </div>
+                                            }
+                                            else if (platform.Platform == "Codeforces")
+                                            {
+                                                <div style="width: 40px; height: 40px; margin: 0 auto 10px auto; background: #1E88E5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                    <span style="color: white; font-size: 16px; font-weight: bold;">CF</span>
+                                                </div>
+                                            }
+                                            else if (platform.Platform == "CodeChef")
+                                            {
+                                                <div style="width: 40px; height: 40px; margin: 0 auto 10px auto; background: #5A2D2D; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                    <span style="color: white; font-size: 16px; font-weight: bold;">CC</span>
+                                                </div>
+                                            }
+                                            else if (platform.Platform == "HackerRank")
+                                            {
+                                                <div style="width: 40px; height: 40px; margin: 0 auto 10px auto; background: #2EC866; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                    <span style="color: white; font-size: 16px; font-weight: bold;">HR</span>
+                                                </div>
+                                            }
+                                            <h6 style="color: #2C3E50;">@platform.Platform</h6>
+                                            <p class="mb-1 text-muted small">@@@platform.Username</p>
+                                            <small class="text-muted">Solved: @platform.TotalSolved problems</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-plug fa-3x mb-3" style="color: #667eea;"></i>
+                            <p class="text-muted">No platforms connected yet</p>
+                            <p class="small text-muted">Enter your username above and click sync to connect a platform</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        async function syncLeetCode() {
+            const username = document.getElementById('leetcodeUsername').value.trim();
+            const resultDiv = document.getElementById('leetcodeResult');
+
+            if (!username) {
+                resultDiv.innerHTML = '<span class="text-danger">⚠️ Please enter a LeetCode username</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Syncing...</span>';
+
+            try {
+                const response = await fetch('/Platforms/SyncLeetCode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    let message = `<span class="text-success">✅ ${data.message}</span>`;
+                    if (data.totalSolved) {
+                        message += `<br><span class="small">📊 Total Solved: ${data.totalSolved}</span>`;
+                    }
+                    resultDiv.innerHTML = message;
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-danger">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function syncCodeforces() {
+            const username = document.getElementById('codeforcesUsername').value.trim();
+            const resultDiv = document.getElementById('codeforcesResult');
+
+            if (!username) {
+                resultDiv.innerHTML = '<span class="text-danger">⚠️ Please enter a Codeforces username</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Syncing...</span>';
+
+            try {
+                const response = await fetch('/Platforms/SyncCodeforces', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-danger">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function syncCodeChef() {
+            const username = document.getElementById('codechefUsername').value.trim();
+            const resultDiv = document.getElementById('codechefResult');
+
+            if (!username) {
+                resultDiv.innerHTML = '<span class="text-danger">⚠️ Please enter a CodeChef username</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Syncing...</span>';
+
+            try {
+                const response = await fetch('/Platforms/SyncCodeChef', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-danger">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function syncHackerRank() {
+            const username = document.getElementById('hackerrankUsername').value.trim();
+            const resultDiv = document.getElementById('hackerrankResult');
+
+            if (!username) {
+                resultDiv.innerHTML = '<span class="text-danger">⚠️ Please enter a HackerRank username</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Syncing...</span>';
+
+            try {
+                const response = await fetch('/Platforms/SyncHackerRank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-danger">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        // Clear all input fields on page load
+        window.addEventListener('load', function() {
+            document.getElementById('leetcodeUsername').value = '';
+            document.getElementById('codeforcesUsername').value = '';
+            document.getElementById('codechefUsername').value = '';
+            document.getElementById('hackerrankUsername').value = '';
+        });
+    </script>
+}

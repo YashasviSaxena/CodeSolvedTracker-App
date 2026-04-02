@@ -1,0 +1,119 @@
+﻿@{
+    ViewData["Title"] = "AI Insights";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-body">
+                    <h4 style="color: #2C3E50;"><i class="fas fa-brain me-2"></i>AI-Powered Insights</h4>
+                    <p class="text-muted">Personalized recommendations based on your coding performance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 style="color: #2C3E50;"><i class="fas fa-exclamation-triangle me-2" style="color: #FF6B6B;"></i>Skill Gaps Detected</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.WeakTopics != null && ViewBag.WeakTopics.Count > 0)
+                    {
+                        <div class="list-group">
+                            @foreach (var topic in ViewBag.WeakTopics)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>@topic</span>
+                                    <span class="badge bg-warning">Needs Improvement</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: #4ECDC4;"></i>
+                            <p>Great job! No major skill gaps detected.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 style="color: #2C3E50;"><i class="fas fa-chart-line me-2" style="color: #81A6C6;"></i>Recommended Difficulty</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-1 fw-bold" style="color: #81A6C6;">@ViewBag.RecommendedDifficulty</div>
+                    <p class="text-muted mt-2">Confidence: @(ViewBag.Confidence * 100)%</p>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar" style="width: @(ViewBag.Confidence * 100)%; background: #81A6C6;"></div>
+                    </div>
+                    <p>Based on your performance, focus on <strong>@ViewBag.RecommendedDifficulty</strong> difficulty problems.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 style="color: #2C3E50;"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.RecentProblems != null && ViewBag.RecentProblems.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Problem</th>
+                                        <th>Platform</th>
+                                        <th>Difficulty</th>
+                                        <th>Solved On</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var problem in ViewBag.RecentProblems)
+                                    {
+                                        <tr>
+                                            <td>@problem.Title</td>
+                                            <td><span class="badge bg-secondary">@problem.Platform</span></td>
+                                            <td>
+                                                @{
+                                                    var badgeColor = problem.Difficulty?.ToLower() switch
+                                                    {
+                                                        "easy" => "#4ECDC4",
+                                                        "medium" => "#FF8E53",
+                                                        "hard" => "#FF6B6B",
+                                                        _ => "#6c757d"
+                                                    };
+                                                }
+                                                <span class="badge" style="background: @badgeColor;">@problem.Difficulty</span>
+                                            </td>
+                                            <td>@(problem.SolvedAt?.ToString("MMM dd, yyyy") ?? problem.CreatedAt.ToString("MMM dd, yyyy"))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-line fa-3x mb-3 text-muted"></i>
+                            <p>Solve more problems to get personalized insights!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

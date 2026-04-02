@@ -1,0 +1,249 @@
+﻿@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">My Profile</h3>
+                </div>
+
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mx-auto mb-3">
+                            <span style="font-size: 48px;">
+                                @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                            </span>
+                        </div>
+                        <h4>@User.Identity?.Name</h4>
+                        <p class="text-muted">Member since @DateTime.Now.ToString("MMMM yyyy")</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5>Account Info</h5>
+                                    <hr />
+                                    <p><strong>Email:</strong> @User.Identity?.Name</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5>Actions</h5>
+                                    <hr />
+                                    <button class="btn btn-outline-primary w-100 mb-2" onclick="showChangePasswordModal()">
+                                        Change Password
+                                    </button>
+                                    <button class="btn btn-outline-danger w-100" onclick="showDeleteAccountModal()">
+                                        Delete Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal fade" id="changePasswordModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5>Change Password</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
+
+                    <input type="password" id="currentPassword" class="form-control mb-2" placeholder="Current Password" />
+                    <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" />
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" />
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="changePassword(event)">Change</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- DELETE ACCOUNT MODAL -->
+<div class="modal fade" id="deleteAccountModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger text-white">
+                <h5>Delete Account</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Type your email to confirm:</p>
+                <input type="email" id="confirmEmail" class="form-control" placeholder="Enter your email" />
+                <small>Please enter @User.Identity?.Name</small>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" onclick="deleteAccount(event)">Delete</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: #6c757d;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function showChangePasswordModal() {
+            new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+        }
+
+        function showDeleteAccountModal() {
+            new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+        }
+
+        async function changePassword(e) {
+            const btn = e.target;
+            btn.disabled = true;
+
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('All fields required');
+                btn.disabled = false;
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Password must be 6+ chars');
+                btn.disabled = false;
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match');
+                btn.disabled = false;
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+                const res = await fetch('/Account/ChangePassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Password updated');
+                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+
+            btn.disabled = false;
+        }
+
+        async function deleteAccount(e) {
+            const btn = e.target;
+            btn.disabled = true;
+
+            const email = document.getElementById('confirmEmail').value.trim();
+            const userEmail = '@User.Identity?.Name';
+
+            if (email !== userEmail) {
+                alert('Email mismatch');
+                btn.disabled = false;
+                return;
+            }
+
+            if (!confirm('Are you sure? This cannot be undone')) {
+                btn.disabled = false;
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+                const res = await fetch('/Account/DeleteAccount', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Account deleted');
+                    window.location.href = '/Account/Login';
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+
+            btn.disabled = false;
+        }
+    </script>
+}

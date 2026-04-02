@@ -1,0 +1,29 @@
+﻿## Ignore build outputs
+bin/
+obj/
+Release/
+Debug/
+publish/
+
+## Ignore databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+hangfire.db
+tracker.db
+
+## Ignore IDE files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+## Ignore secrets
+appsettings.Development.json
+secrets.json
+
+## Ignore logs
+*.log
+logs/

@@ -1,0 +1,200 @@
+﻿@model CodeSolvedTracker.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0" style="color: #667eea;">@Model.TotalSolved</h2>
+                            <p class="mb-0 text-muted">Problems Solved</p>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-check-circle fa-2x" style="color: #667eea;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0" style="color: #667eea;">@Model.TotalProblems</h2>
+                            <p class="mb-0 text-muted">Total Problems</p>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-tasks fa-2x" style="color: #667eea;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0" style="color: #667eea;">
+                                @(Model.TotalProblems > 0 ? ((double)Model.TotalSolved / Model.TotalProblems * 100).ToString("F0") : "0")%
+                            </h2>
+                            <p class="mb-0 text-muted">Completion Rate</p>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-chart-line fa-2x" style="color: #667eea;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0" style="color: #667eea;">@Model.UserPlatforms.Count</h2>
+                            <p class="mb-0 text-muted">Connected Platforms</p>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-plug fa-2x" style="color: #667eea;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connected Platforms -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="color: #2C3E50;">Connected Platforms</h5>
+                        <a href="/Platforms/Index" class="btn" style="background: #667eea; color: white;">
+                            <i class="fas fa-plus-circle"></i> Add Platform
+                        </a>
+                    </div>
+                    @if (Model.UserPlatforms != null && Model.UserPlatforms.Any())
+                    {
+                        <div class="row">
+                            @foreach (var platform in Model.UserPlatforms)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-0 shadow-sm rounded-3" style="background: #F8F9FA;">
+                                        <div class="card-body text-center">
+                                            @if (platform.Platform == "LeetCode")
+                                            {
+                                                <i class="fab fa-leetcode fa-2x mb-2" style="color: #f89f1b;"></i>
+                                            }
+                                            else if (platform.Platform == "Codeforces")
+                                            {
+                                                <i class="fas fa-code fa-2x mb-2" style="color: #1e88e5;"></i>
+                                            }
+                                            else if (platform.Platform == "CodeChef")
+                                            {
+                                                <i class="fas fa-utensils fa-2x mb-2" style="color: #5a2d2d;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fab fa-hackerrank fa-2x mb-2" style="color: #2ec866;"></i>
+                                            }
+                                            <h6 style="color: #2C3E50;">@platform.Platform</h6>
+                                            <p class="mb-1 text-muted small">@@@platform.Username</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-plug fa-3x mb-3" style="color: #667eea;"></i>
+                            <p class="text-muted">No platforms connected yet</p>
+                            <a href="/Platforms/Index" class="btn" style="background: #667eea; color: white;">Connect Your First Platform</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Problems -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50;">Recent Problems</h5>
+                    @if (Model.RecentProblems != null && Model.RecentProblems.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr style="color: #2C3E50;">
+                                        <th>Title</th>
+                                        <th>Platform</th>
+                                        <th>Difficulty</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var problem in Model.RecentProblems)
+                                    {
+                                        <tr>
+                                            <td><strong>@problem.Title</strong></td>
+                                            <td><span class="badge" style="background: #E9ECEF; color: #2C3E50;">@problem.Platform</span></td>
+                                            <td>
+                                                @{
+                                                    var badgeColor = problem.Difficulty?.ToLower() switch
+                                                    {
+                                                        "easy" => "#4ECDC4",
+                                                        "medium" => "#FF8E53",
+                                                        "hard" => "#FF6B6B",
+                                                        _ => "#6c757d"
+                                                    };
+                                                }
+                                                <span class="badge" style="background: @badgeColor; color: white;">@problem.Difficulty</span>
+                                            </td>
+                                            <td>
+                                                @if (problem.IsSolved)
+                                                {
+                                                    <span class="badge" style="background: #4ECDC4; color: white;">
+                                                        <i class="fas fa-check-circle"></i> Solved
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge" style="background: #FF8E53; color: white;">
+                                                        <i class="fas fa-hourglass-half"></i> Pending
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td><small>@(problem.SolvedAt?.ToString("MMM dd, yyyy") ?? problem.CreatedAt.ToString("MMM dd, yyyy"))</small></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x mb-3" style="color: #667eea;"></i>
+                            <p class="text-muted">No problems tracked yet</p>
+                            <a href="/Platforms/Index" class="btn" style="background: #667eea; color: white;">Sync Your First Platform</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
