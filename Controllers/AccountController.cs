@@ -109,7 +109,8 @@ namespace CodeSolvedTracker.Controllers
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("Role", user.Role ?? "User")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -197,6 +198,16 @@ namespace CodeSolvedTracker.Controllers
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+
+                // Create stats for new user
+                _context.Stats.Add(new Stats
+                {
+                    UserId = user.Id,
+                    TotalSolved = 0,
+                    TotalProblems = 0,
+                    LastUpdated = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
             }
             else
             {
@@ -208,7 +219,8 @@ namespace CodeSolvedTracker.Controllers
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("Role", user.Role ?? "User")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -225,15 +237,95 @@ namespace CodeSolvedTracker.Controllers
         [Authorize]
         public async Task<IActionResult> Dashboard()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ??
+                        User.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("Login");
+            }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            return View(new DashboardViewModel
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Get connected platforms with their solved counts
+            var userPlatforms = await _context.UserPlatforms
+                .Where(up => up.UserId == user.Id)
+                .ToListAsync();
+
+            // Calculate total solved from all platforms
+            var totalSolved = userPlatforms.Sum(p => p.TotalSolved);
+
+            // Calculate difficulty breakdown from platforms
+            var easyCount = userPlatforms.Sum(p => p.EasySolved);
+            var mediumCount = userPlatforms.Sum(p => p.MediumSolved);
+            var hardCount = userPlatforms.Sum(p => p.HardSolved);
+
+            // Get recent solved problems
+            var recentProblems = await _context.Problems
+                .Where(p => p.UserId == user.Id && p.IsSolved)
+                .OrderByDescending(p => p.SolvedAt ?? p.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            // Update or create Stats record
+            var stats = await _context.Stats.FirstOrDefaultAsync(s => s.UserId == user.Id);
+            if (stats == null)
+            {
+                stats = new Stats
+                {
+                    UserId = user.Id,
+                    TotalSolved = totalSolved,
+                    TotalProblems = totalSolved,
+                    LastUpdated = DateTime.UtcNow
+                };
+                _context.Stats.Add(stats);
+            }
+            else
+            {
+                stats.TotalSolved = totalSolved;
+                stats.TotalProblems = totalSolved;
+                stats.LastUpdated = DateTime.UtcNow;
+            }
+            await _context.SaveChangesAsync();
+
+            // Weekly progress (last 7 days)
+            var progressDates = new List<string>();
+            var progressCounts = new List<int>();
+
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = DateTime.UtcNow.AddDays(-i).Date;
+                var count = await _context.Problems
+                    .CountAsync(p => p.UserId == user.Id &&
+                                    p.IsSolved &&
+                                    p.SolvedAt.HasValue &&
+                                    p.SolvedAt.Value.Date == date);
+                progressDates.Add(date.ToString("MMM dd"));
+                progressCounts.Add(count);
+            }
+
+            var viewModel = new DashboardViewModel
             {
                 UserEmail = user.Email,
-                UserName = user.UserName
-            });
+                UserName = user.UserName,
+                Stats = stats,
+                UserPlatforms = userPlatforms,
+                RecentProblems = recentProblems,
+                TotalSolved = totalSolved,
+                TotalProblems = totalSolved,
+                EasyCount = easyCount,
+                MediumCount = mediumCount,
+                HardCount = hardCount,
+                ProgressDates = progressDates,
+                ProgressCounts = progressCounts
+            };
+
+            return View(viewModel);
         }
 
         // ================= LOGOUT =================
@@ -242,6 +334,7 @@ namespace CodeSolvedTracker.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
+            TempData["SuccessMessage"] = "Logged out successfully";
             return RedirectToAction("Login");
         }
     }
