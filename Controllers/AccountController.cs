@@ -328,6 +328,90 @@ namespace CodeSolvedTracker.Controllers
             return View(viewModel);
         }
 
+        // ================= PROFILE PAGE =================
+
+        [Authorize]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        // ================= CHANGE PASSWORD =================
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            try
+            {
+                var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found" });
+
+                if (user.AuthProvider != "Manual")
+                    return Json(new { success = false, message = $"Password cannot be changed for {user.AuthProvider} accounts." });
+
+                if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.Password))
+                    return Json(new { success = false, message = "Current password is incorrect" });
+
+                if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < 6)
+                    return Json(new { success = false, message = "Password must be at least 6 characters" });
+
+                user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Password changed successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ================= DELETE ACCOUNT =================
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            try
+            {
+                var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                var user = await _context.Users
+                    .Include(u => u.UserPlatforms)
+                    .Include(u => u.Problems)
+                    .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found" });
+
+                if (user.UserPlatforms != null && user.UserPlatforms.Any())
+                    _context.UserPlatforms.RemoveRange(user.UserPlatforms);
+
+                if (user.Problems != null && user.Problems.Any())
+                    _context.Problems.RemoveRange(user.Problems);
+
+                var stats = await _context.Stats.FirstOrDefaultAsync(s => s.UserId == user.Id);
+                if (stats != null)
+                    _context.Stats.Remove(stats);
+
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+
+                await HttpContext.SignOutAsync();
+
+                return Json(new { success = true, message = "Account deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // ================= LOGOUT =================
 
         [Authorize]
@@ -337,5 +421,13 @@ namespace CodeSolvedTracker.Controllers
             TempData["SuccessMessage"] = "Logged out successfully";
             return RedirectToAction("Login");
         }
+    }
+
+    // ================= REQUEST MODELS =================
+
+    public class ChangePasswordRequest
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }
