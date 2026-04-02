@@ -2,248 +2,175 @@
     ViewData["Title"] = "Profile";
 }
 
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success">
-                    @TempData["SuccessMessage"]
+            <div class="card border-0 shadow-sm rounded-4" style="background: white;">
+                <div class="card-header bg-transparent border-0 pt-4 text-center">
+                    <i class="fas fa-user-circle fa-4x" style="color: #667eea;"></i>
+                    <h3 class="mt-2" style="color: #2C3E50;">My Profile</h3>
+                    <p class="text-muted">Manage your account settings</p>
                 </div>
-            }
+                <div class="card-body p-4">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    }
 
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger">
-                    @TempData["ErrorMessage"]
-                </div>
-            }
-
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">My Profile</h3>
-                </div>
-
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <div class="avatar-circle mx-auto mb-3">
-                            <span style="font-size: 48px;">
-                                @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
-                            </span>
-                        </div>
-                        <h4>@User.Identity?.Name</h4>
-                        <p class="text-muted">Member since @DateTime.Now.ToString("MMMM yyyy")</p>
+                    <div class="mb-4">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="@User.Identity?.Name" readonly disabled>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5>Account Info</h5>
-                                    <hr />
-                                    <p><strong>Email:</strong> @User.Identity?.Name</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5>Actions</h5>
-                                    <hr />
-                                    <button class="btn btn-outline-primary w-100 mb-2" onclick="showChangePasswordModal()">
-                                        Change Password
-                                    </button>
-                                    <button class="btn btn-outline-danger w-100" onclick="showDeleteAccountModal()">
-                                        Delete Account
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="mb-4">
+                        <label class="form-label">Account Type</label>
+                        <input type="text" class="form-control" value="Manual" readonly disabled>
                     </div>
 
+                    <hr />
+
+                    <h5 class="mb-3">Account Actions</h5>
+
+                    <div class="mb-3">
+                        <button class="btn btn-outline-primary w-100" onclick="showChangePassword()">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <button class="btn btn-outline-danger w-100" onclick="showDeleteAccount()">
+                            <i class="fas fa-trash"></i> Delete Account
+                        </button>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- CHANGE PASSWORD MODAL -->
-<div class="modal fade" id="changePasswordModal">
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-                <h5>Change Password</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-                <form id="changePasswordForm">
-                    @Html.AntiForgeryToken()
-
-                    <input type="password" id="currentPassword" class="form-control mb-2" placeholder="Current Password" />
-                    <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" />
-                    <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" />
-                </form>
+                <input type="password" id="currentPassword" class="form-control mb-2" placeholder="Current Password">
+                <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password">
+                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm New Password">
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="changePassword(event)">Change</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="changePassword()">Update Password</button>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- DELETE ACCOUNT MODAL -->
-<div class="modal fade" id="deleteAccountModal">
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-
-            <div class="modal-header bg-danger text-white">
-                <h5>Delete Account</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-                <p>Type your email to confirm:</p>
-                <input type="email" id="confirmEmail" class="form-control" placeholder="Enter your email" />
-                <small>Please enter @User.Identity?.Name</small>
+                <div class="alert alert-warning">
+                    <strong>Warning!</strong> This action cannot be undone.
+                </div>
+                <p>Type <strong>DELETE</strong> to confirm:</p>
+                <input type="text" id="confirmDelete" class="form-control" placeholder="DELETE">
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-danger" onclick="deleteAccount(event)">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
             </div>
-
         </div>
     </div>
 </div>
-
-<style>
-    .avatar-circle {
-        width: 100px;
-        height: 100px;
-        background: #6c757d;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-    }
-</style>
 
 @section Scripts {
     <script>
-        function showChangePasswordModal() {
-            new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+        function showChangePassword() {
+            var myModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            myModal.show();
         }
 
-        function showDeleteAccountModal() {
-            new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+        function showDeleteAccount() {
+            var myModal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+            myModal.show();
         }
 
-        async function changePassword(e) {
-            const btn = e.target;
-            btn.disabled = true;
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-            const currentPassword = document.getElementById('currentPassword').value.trim();
-            const newPassword = document.getElementById('newPassword').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
-
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                alert('All fields required');
-                btn.disabled = false;
+            if (!currentPassword || !newPassword) {
+                alert('Please fill all fields');
                 return;
             }
-
-            if (newPassword.length < 6) {
-                alert('Password must be 6+ chars');
-                btn.disabled = false;
-                return;
-            }
-
             if (newPassword !== confirmPassword) {
-                alert('Passwords do not match');
-                btn.disabled = false;
+                alert('New passwords do not match');
+                return;
+            }
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters');
                 return;
             }
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 
             try {
-                const res = await fetch('/Account/ChangePassword', {
+                const response = await fetch('/Account/ChangePassword', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({ currentPassword, newPassword })
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
                 });
-
-                const data = await res.json();
-
+                const data = await response.json();
                 if (data.success) {
-                    alert('Password updated');
-                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
-                    document.getElementById('changePasswordForm').reset();
+                    alert('Password changed successfully!');
+                    location.reload();
                 } else {
-                    alert(data.message);
+                    alert('Error: ' + data.message);
                 }
-            } catch (err) {
-                alert(err.message);
+            } catch (error) {
+                alert('Error: ' + error.message);
             }
-
-            btn.disabled = false;
         }
 
-        async function deleteAccount(e) {
-            const btn = e.target;
-            btn.disabled = true;
-
-            const email = document.getElementById('confirmEmail').value.trim();
-            const userEmail = '@User.Identity?.Name';
-
-            if (email !== userEmail) {
-                alert('Email mismatch');
-                btn.disabled = false;
+        async function deleteAccount() {
+            const confirmText = document.getElementById('confirmDelete').value;
+            if (confirmText !== 'DELETE') {
+                alert('Please type DELETE to confirm');
                 return;
             }
+            if (!confirm('Are you sure you want to delete your account?')) return;
 
-            if (!confirm('Are you sure? This cannot be undone')) {
-                btn.disabled = false;
-                return;
-            }
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 
             try {
-                const res = await fetch('/Account/DeleteAccount', {
+                const response = await fetch('/Account/DeleteAccount', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({})
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token }
                 });
-
-                const data = await res.json();
-
+                const data = await response.json();
                 if (data.success) {
-                    alert('Account deleted');
+                    alert('Account deleted. Redirecting to login...');
                     window.location.href = '/Account/Login';
                 } else {
-                    alert(data.message);
+                    alert('Error: ' + data.message);
                 }
-            } catch (err) {
-                alert(err.message);
+            } catch (error) {
+                alert('Error: ' + error.message);
             }
-
-            btn.disabled = false;
         }
     </script>
 }
